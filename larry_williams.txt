@@ -1,0 +1,39 @@
+//@version=5
+
+strategy("larry_williams_SOL",  overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, initial_capital=1000, commission_type=strategy.commission.percent, commission_value=0.08)
+// Название стратегии - "larry_williams_SOL". Параметр overlay=true позволяет наложить стратегию на график ценовых данных. 
+// Параметры default_qty_type и default_qty_value устанавливают тип и количество акций для торговли (в данном случае, процент от капитала). initial_capital устанавливает начальный капитал. commission_type и commission_value устанавливают комиссию в процентах.
+
+// Settings
+
+length_bars = input.int(5, step = 1, title='how bars back')
+// Это переменная, предназначенная для определения количества баров назад для анализа. Она задается пользователем через визуальный интерфейс в виде целого числа, начиная с 5 баров назад.
+
+length = input.int(-95, step = 1, title='bars back')
+// Это переменная, которая устанавливает условие для открытия позиции Long. Определенное пользователем количество баров назад (отрицательное число) сравнивается с текущим значением Williams %R.
+
+length_now = input.int(-85, step = 1, title='bar now')
+// Это переменная, которая определяет условие для открытия Long позиции в текущем баре (bar now). Определенное пользователем количество баров назад (отрицательное число) сравнивается с текущим значением Williams %R.
+
+x = ta.wpr(10)
+// Это переменная, в которой вычисляется значение Williams %R для последних 10 баров.
+
+if  x[length_bars] < length  and x > length_now
+    strategy.entry("Long", strategy.long)
+// Это условие, при котором будет открыта длинная позиция. Если значение Williams %R на заданном количестве баров назад меньше значения length и текущее значение больше length_now, то стратегия откроет длинную позицию (Long).
+
+SLlong = input.float(title="SLlong", defval=0.1, step = 0.1)
+TPlong = input.float(title="TPlong", defval=0.3, step = 0.1)
+// Это переменные, которые позволяют пользователю установить значения стоп-лосса (SLlong) и тейк-профита (TPlong) для длинной позиции.
+
+SL = SLlong
+TP = TPlong
+// Эти переменные просто устанавливают значения стоп-лосса и тейк-профита для дальнейшего использования.
+
+longstop = strategy.position_avg_price*(1-SL)
+longprofit = strategy.position_avg_price*(1+TP)
+// Эти переменные определяют цену стоп-лосса и тейк-профита для длинной позиции. Они вычисляются как проценты от средней цены открытой позиции.
+
+if  strategy.position_size>0
+    strategy.exit("Long", stop=longstop, limit=longprofit)
+// Это условие проверяет, если в данный момент открыта длинная позиция, то стратегия выходит из нее по установленным ценам стоп-лосса и тейк-профита.
